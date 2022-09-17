@@ -5,7 +5,7 @@
 *  (including web sites) or distributed to other students.
 * 
 *  Name: Ryan Locke Student ID: 034748129 Date: September 16 2022
-*  Cyclic Link: _______________________________________________________________
+*  Cyclic Link: https://ill-cyan-rattlesnake-belt.cyclic.app/
 *
 ********************************************************************************/ 
 
@@ -31,22 +31,27 @@ app.get("/", function(req, res){
 app.post("/api/movies", (req, res)=>{
     db.addNewMovie(req.body)
     .then(function(data){
-        res.status(201).send(data);   
+        res.status(201).json(data);   
     })
-    .catch((error)=>{
+    .catch((err)=>{
         res.status(400).send("400 - Bad Request - Can Not Add New Movie");
     })
 })
 
-app.get('/api/movies/:page/:perPage/:title?', (req, res)=>{
-    db.getAllMovies(req.params.page, req.params.perPage, req.params.title)
-    .then(function(data){
-        res.status(200).send(data);
-    })
-    .catch((error)=>{
-        res.status(204).send("204 - No Content");
-    })
-})
+app.get("/api/movies", (req, res) => {
+    if((!req.query.page || !req.query.perPage)){
+        res.status(500).json({message: "Missing query parameters"})
+    }
+    else {
+        db.getAllMovies(req.query.page, req.query.perPage, req.query.title)
+        .then((data) => {
+            res.status(201).json(data);
+        })
+        .catch((err) => { 
+            res.status(500).json({error: err})
+         })
+    }
+});
 
 app.get('/api/movies/:id', (req, res)=>{
     db.getMovieById(req.params.id)
@@ -54,7 +59,7 @@ app.get('/api/movies/:id', (req, res)=>{
         res.status(200).send(data);
     })
     .catch((error)=>{
-        res.status(204).send("204 - No Content");
+        res.status(204).send(error + "204 - No Content");
     })
 })
 
@@ -64,7 +69,7 @@ app.put('/api/movies/:id', (req, res)=>{
         res.status(204).send("Success - Updated Movie");
     })
     .catch((error)=>{
-        res.status(400).send("400 - Error: Could Not Update Movie");
+        res.status(400).send(error + "400 - Error: Could Not Update Movie");
     })
 })
 
@@ -74,7 +79,7 @@ app.delete('/api/movies/:id', (req, res)=>{
         res.status(204).send("Success - Deleted Movie");
     })
     .catch((error)=>{
-        res.status(400).send("400 - Error: Could not delete Movie")
+        res.status(400).send(error + "400 - Error: Could not delete Movie")
     })
 })
 
@@ -83,6 +88,6 @@ db.initialize(process.env.MONGODB_CONN_STRING).then(()=>{
         console.log(`server listening on: ${HTTP_PORT}`);
     });
 }).catch((err)=>{
-    res.status(500).send("500 - Server Error");
+    res.status(500).send(err+ "500 - Server Error");
 });
 
